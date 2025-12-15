@@ -47,7 +47,7 @@ namespace AuthWebApplication.Controllers
     // PUT: api/Author/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    [Authorize]
+    //[Authorize]
     public async Task<IActionResult> PutAuthor(int id, Author author)
     {
 
@@ -88,7 +88,7 @@ namespace AuthWebApplication.Controllers
     // POST: api/Author
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    [Authorize]
+   // [Authorize]
     public async Task<ActionResult<Author>> PostAuthor(Author author)
     {
       try
