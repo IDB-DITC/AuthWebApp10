@@ -1,13 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AuthWebApplication.Model;
+using FastReport;
+
+//using FastReport;
+//using FastReport.Data;
+//using FastReport.Export.PdfSimple;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using AuthWebApplication.Model;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace AuthWebApplication.Controllers
 {
@@ -47,7 +56,7 @@ namespace AuthWebApplication.Controllers
     // PUT: api/Author/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    [Authorize]
+    //[Authorize]
     public async Task<IActionResult> PutAuthor(int id, Author author)
     {
 
@@ -119,6 +128,78 @@ namespace AuthWebApplication.Controllers
       await _context.SaveChangesAsync();
 
       return NoContent();
+    }
+
+    [HttpGet("report")]
+    public async Task<IActionResult> GetReport()
+    {
+      try
+      {
+
+        AuthorDetailsData reportData = new AuthorDetailsData();
+
+
+
+        var ready = await reportData.PrepareAsync();
+        if (ready)
+        {
+
+          //PDFSimpleExport export = new PDFSimpleExport();
+          string pdf;
+          byte[] pdfBytes;
+          MemoryStream ms = new MemoryStream();
+
+          //reportData.Export(export, ms);
+          ms.Position = 0;
+          pdfBytes = ms.ToArray();
+
+          pdf = "data:application/pdf;base64," + Convert.ToBase64String(pdfBytes);
+          return Ok(pdf);
+        }
+
+
+
+
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex);
+      }
+      return NotFound();
+    }
+
+
+    [HttpGet("Report/{id}")]
+    public async Task<IActionResult> GetReport(int id)
+    {
+      try
+      {
+        AuthorDetailsReport report = new();
+
+        report.SetParameterValue("AuthorID",id);
+
+        var ready = await report.PrepareAsync();
+        if (ready)
+        {
+
+          FastReport.Export.PdfSimple.PDFSimpleExport export = new  ();
+          string pdf;
+          byte[] pdfBytes;
+          MemoryStream ms = new MemoryStream();
+
+          report.Export(export, ms);
+          ms.Position = 0;
+          pdfBytes = ms.ToArray();
+
+          pdf = "data:application/pdf;base64," + Convert.ToBase64String(pdfBytes);
+          return Ok(pdf);
+        }
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex);
+      }
+      return NotFound();
     }
 
     private bool AuthorExists(int id)

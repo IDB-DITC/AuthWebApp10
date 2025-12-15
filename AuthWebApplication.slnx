@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="AuthWebApplication.ReportProcessor/AuthWebApplication.ReportProcessor.csproj" Id="3db38f25-7d9f-42f8-af1b-e945919829fb" />
   <Project Path="AuthWebApplication/AuthWebApplication.csproj" />
 </Solution>

@@ -1,4 +1,5 @@
 using AuthWebApplication.Model;
+
 //using AuthWebApplication.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ namespace AuthWebApplication
 {
   public class Program
   {
+
     public static void Main(string[] args)
     {
       var builder = WebApplication.CreateBuilder(args);
@@ -46,7 +48,7 @@ namespace AuthWebApplication
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-      builder.Services.AddIdentity<AppUser,IdentityRole<Guid>>()
+      builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<ExamDb>()
                 .AddDefaultTokenProviders();
 
@@ -90,40 +92,59 @@ namespace AuthWebApplication
           //policyOpt.RequireRole("Admin");
           //policyOpt.RequireRole("Moderator");
 
-          policyOpt.RequireAssertion(ctx => ctx.User.Claims.Any(c => (c.Type == ClaimTypes.Role && (c.Value == "Admin" || c.Value == "Moderator")) || (c.Type == ClaimTypes.Name && c.Value.ToLower().Contains("admin"))));
-        });
+      policyOpt.RequireAssertion(ctx => ctx.User.Claims.Any(c => (c.Type == ClaimTypes.Role && (c.Value == "Admin" || c.Value == "Moderator")) || (c.Type == ClaimTypes.Name && c.Value.ToLower().Contains("admin"))));
+    });
       });
 
       //builder.Services.AddScoped<IImageUpload, ImageUpload>();
 
-      builder.Services.AddControllers().AddJsonOptions(op =>
+      builder.Services.AddControllersWithViews().AddJsonOptions(op =>
       {
         op.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 
         op.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        //op.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenReading;
 
+        //.DateFormatString = "yyyy-MM-dd";
         //op.JsonSerializerOptions.PropertyNamingPolicy  = JsonNamingPolicy.CamelCase;
         op.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        //op.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
+        //options.JsonSerializerOptions.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+
       });
+
+
       // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
       //builder.Services.AddOpenApi();
       builder.Services.AddOpenApi(options =>
       {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
       });
+
+      //add this for FastReport
+      FastReport.Utils.RegisteredObjects.AddConnection(typeof(FastReport.Data.MsSqlDataConnection));
+      builder.Services.AddFastReport();
+
+
+
+
       var app = builder.Build();
 
       // Configure the HTTP request pipeline.
       //if (app.Environment.IsDevelopment())
       {
         app.MapOpenApi();
-        app.MapScalarApiReference("/");
+        app.MapScalarApiReference("/doc");
       }
 
       //app.UseHttpsRedirection();
       app.UseAuthorization();
-      app.MapControllers();
+      app.MapDefaultControllerRoute();
       //app.UseCors();
+
+      //activate fast report
+      app.UseFastReport();
+
 
       app.UseCors(policy =>
       {

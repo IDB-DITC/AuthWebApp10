@@ -21,4 +21,6 @@ namespace AuthWebApplication.Model
     public string Password { get; set; } = default!;
     #endregion
   }
+
+
 }

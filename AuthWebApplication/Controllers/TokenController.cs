@@ -16,9 +16,46 @@ namespace AuthWebApplication.Controllers
   [ApiController]
   public class TokenController(SignInManager<AppUser> signManager, UserManager<AppUser> userManager, IConfiguration configuration) : ControllerBase
   {
+
     [HttpPost]
     [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(UserDto userDto)
+    {
+      try
+      {
+        var user = await userManager.FindByEmailAsync(userDto.UserName);
 
+        if (user == null)
+        {
+          user = await userManager.FindByNameAsync(userDto.UserName);
+
+          if (user == null)
+          {
+            return BadRequest("Invalid user");
+          }
+        }
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, resetToken, userDto.Password);
+        if (result.Succeeded)
+        {
+          return Ok(new { Message = "Password reset success" });
+        }
+        else
+        {
+          return BadRequest(result.Errors);
+        }
+      }
+      catch 
+      {
+        return BadRequest();
+      }
+      
+    }
+
+
+
+      [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> Register(UserDto userDto)
     {
       try
@@ -92,7 +129,10 @@ namespace AuthWebApplication.Controllers
 
           //var issuer = configuration.GetValue<string>("Jwt:Issuer");
 
-          var jwtToken = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddDays(7), signingCredentials: signCredential);
+          var jwtToken = new JwtSecurityToken(claims: claims, 
+            //notBefore: DateTime.Now.AddDays(2),
+            expires: DateTime.Now.AddDays(7),
+            signingCredentials: signCredential);
 
           var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
